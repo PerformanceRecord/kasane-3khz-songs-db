@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <meta name="theme-color" content="#e6f6ff">
-  <title>彩興DB</title>
+
+  <!-- PC/通常ブラウザでの表示名（長いまま） -->
+  <title>花彩音3kHz歌唱曲DB</title>
+
+  <!-- iOSでホーム画面に追加した時の名前を短くする -->
+  <meta name="apple-mobile-web-app-title" content="彩興DB">
+  <!-- Androidや一部ブラウザでのアプリ名 -->
+  <meta name="application-name" content="彩興DB">
+
+  <!-- PWA用マニフェスト（※実ファイルを配置してください） -->
+  <link rel="manifest" href="/kasane-3khz-songs-db/manifest.webmanifest">
 
   <!-- 汎用ICO（最優先の後方互換） -->
   <link rel="icon" href="/kasane-3khz-songs-db/favicon.ico" sizes="any">
@@ -89,7 +99,7 @@
       background:#e0f2ff;
       border-color:#93c5fd;
       font-weight:600;
-      color:var(--text); /* アクティブでも黒のまま */
+      color:var(--text);
     }
 
     .dm-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
@@ -243,9 +253,9 @@
       archiveByTitle: null,
       lastScroll: 0,
       histKey: null,
-      // 並べ替え条件自体は持っておくが、初回は使わない
+      // 並べ替え条件は持つが、初回は使わない
       sort: { key: 'date', dir: 'desc' },
-      sortEnabled: false   // ←初回はソートしない（シート順で表示）
+      sortEnabled: false
     };
 
     const $ = id => document.getElementById(id);
@@ -580,7 +590,7 @@
         filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q));
       }
 
-      // ←ここが今回のキモ。sortEnabledのときだけ並べ替える
+      // 並べ替えが有効なときだけソート
       if (state.sortEnabled) {
         const { key, dir } = state.sort;
         filtered = filtered.slice().sort((a,b)=>{
@@ -708,7 +718,6 @@
 
     // 並べ替えボタンを押したとき
     function handleSortClick(key){
-      // 初めて押されたらソートを有効化
       if (!state.sortEnabled) {
         state.sortEnabled = true;
       }
@@ -751,7 +760,7 @@
       if (!state.cache['gags'])  requestData('gags');
 
       ensureArchiveFast();
-      updateSortUI(); // 初期：並べ替え無し表示
+      updateSortUI();
     })();
   </script>
 </body>
