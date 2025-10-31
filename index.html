@@ -5,21 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <meta name="theme-color" content="#e6f6ff">
 
-  <!-- PC/通常ブラウザでの表示名（長いまま） -->
+  <!-- PC/通常ブラウザでの表示名 -->
   <title>花彩音3kHz歌唱曲DB</title>
 
-  <!-- iOSでホーム画面に追加した時の名前を短くする -->
+  <!-- モバイルで短縮表示 -->
   <meta name="apple-mobile-web-app-title" content="彩興DB">
-  <!-- Androidや一部ブラウザでのアプリ名 -->
   <meta name="application-name" content="彩興DB">
 
-  <!-- PWA用マニフェスト（GASで返す場合はここをGASのexec?manifest=1にしてください） -->
+  <!-- PWAマニフェスト -->
   <link rel="manifest" href="/kasane-3khz-songs-db/manifest.webmanifest">
 
-  <!-- 汎用ICO（最優先の後方互換） -->
+  <!-- favicon群 -->
   <link rel="icon" href="/kasane-3khz-songs-db/favicon.ico" sizes="any">
-
-  <!-- PNG各サイズ（ブラウザの最適サイズ選択用） -->
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-16.png"  sizes="16x16"   type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-32.png"  sizes="32x32"   type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-48.png"  sizes="48x48"   type="image/png">
@@ -28,8 +25,6 @@
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-192.png" sizes="192x192" type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-256.png" sizes="256x256" type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-512.png" sizes="512x512" type="image/png">
-
-  <!-- iPhone ホーム追加用 -->
   <link rel="apple-touch-icon" href="/kasane-3khz-songs-db/apple-touch-icon-180.png" sizes="180x180">
 
   <style>
@@ -40,7 +35,7 @@
       --muted:#6b7280;
       --line:#e5e7eb;
       --thead:#dff1ff;
-      --focus:#97f0b6;
+      --focus:#97f0b6; /* ミント寄せ */
       --tab-bg:#ffffff;
       --tab-active:#c8e7ff;
       --tab-border:#cbd5e1;
@@ -77,6 +72,16 @@
       gap:8px;
       flex-wrap:wrap
     }
+
+    /* タブ＆並べ替えボタン共通のフォーカス制御 */
+    .pill-focus:focus{
+      outline:none;
+    }
+    .pill-focus:focus-visible{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+
     .tab{
       appearance:none;
       border:1px solid var(--tab-border);
@@ -90,14 +95,6 @@
     .tab[aria-selected="true"]{
       background:var(--tab-active);
       font-weight:700
-    }
-    /* ←ここでタブだけフォーカスリングを抑制し、キーボード操作時だけ出す */
-    .tab:focus{
-      outline:none;
-    }
-    .tab:focus-visible{
-      outline:3px solid var(--focus);
-      outline-offset:2px;
     }
 
     .limit-wrap{
@@ -113,7 +110,6 @@
       min-width:120px
     }
 
-    /* 検索＋トグル */
     .row{
       display:flex;
       gap:10px;
@@ -136,12 +132,11 @@
       color:var(--text);
       outline:none
     }
-    /* こっちは今までどおりミントで出す */
+    /* フォーム系はミントで出す */
     input[type="search"]:focus,
     select:focus,
     .btn:focus,
-    .link-icon:focus,
-    .link-btn:focus{
+    .link-icon:focus{
       outline:3px solid var(--focus);
       outline-offset:2px;
     }
@@ -162,7 +157,7 @@
       outline-offset:2px;
     }
 
-    /* 折りたたみ並べ替えバー（初回非表示） */
+    /* 折りたたみ並べ替え */
     .sortbar{
       display:flex;
       gap:8px;
@@ -179,7 +174,7 @@
       appearance:none;
       border:1px solid var(--line);
       background:#fff;
-      color:var(--text); /* 黒で統一 */
+      color:var(--text);
       border-radius:999px;
       padding:4px 12px;
       font-size:13px;
@@ -376,8 +371,8 @@
     <div class="card">
       <div class="topbar">
         <div class="tabs" role="tablist" aria-label="検索対象">
-          <button id="tab-songs" class="tab" role="tab" aria-selected="true"  data-tab="songs">歌唱曲</button>
-          <button id="tab-gags"  class="tab" role="tab" aria-selected="false" data-tab="gags">一発ネタ</button>
+          <button id="tab-songs" class="tab pill-focus" role="tab" aria-selected="true"  data-tab="songs">歌唱曲</button>
+          <button id="tab-gags"  class="tab pill-focus" role="tab" aria-selected="false" data-tab="gags">一発ネタ</button>
         </div>
         <div class="limit-wrap">
           <label for="limit" class="muted" style="white-space:nowrap;">表示</label>
@@ -399,9 +394,9 @@
 
       <!-- 折りたたみ並べ替え -->
       <div class="sortbar" id="sortbar" aria-label="並べ替え">
-        <button type="button" class="sort-btn" data-sort="title" id="sort-title">楽曲名順↑</button>
-        <button type="button" class="sort-btn" data-sort="artist" id="sort-artist">歌手名順↑</button>
-        <button type="button" class="sort-btn" data-sort="date" id="sort-date">投稿日順↓</button>
+        <button type="button" class="sort-btn pill-focus" data-sort="title" id="sort-title">楽曲名順↑</button>
+        <button type="button" class="sort-btn pill-focus" data-sort="artist" id="sort-artist">歌手名順↑</button>
+        <button type="button" class="sort-btn pill-focus" data-sort="date" id="sort-date">投稿日順↓</button>
       </div>
 
       <div class="dm-wrap" aria-label="弾幕コピー">
@@ -449,23 +444,28 @@
     const HARD_LIMIT = 10000;
     const ARCHIVE_VERSION = 'v2.5';
 
+    const LABELS = {
+      title:  { asc: '楽曲名順↑',  desc: '楽曲名順↓' },
+      artist: { asc: '歌手名順↑',  desc: '歌手名順↓' },
+      date:   { asc: '投稿日順↑',  desc: '投稿日順↓' },
+    };
+
     const state = {
       current: 'songs',
       cache: { songs:null, gags:null },
-      rows: [],
       debounce: null,
-      archiveRaw: null,
       archiveByKey: null,
       archiveByTitle: null,
       lastScroll: 0,
       histKey: null,
-      sort: { key: 'date', dir: 'desc' },
+      sort: null,           // ← 初期は並べ替えなし
       sortEnabled: false
     };
 
     const $ = id => document.getElementById(id);
     const normalize = s => (s||'').toString().toLowerCase().replace(/\s+/g,' ').trim();
     const showToast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); };
+
     async function copyText(text){
       try{
         if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
@@ -483,7 +483,7 @@
       const text = `${(title||'').trim()} / ${(artist||'').trim()}`.trim();
       await copyText(text);
     }
-    document.getElementById('dm-copy').addEventListener('click', ()=>{
+    $('dm-copy').addEventListener('click', ()=> {
       const v = $('dm-select').value || '';
       copyText(v);
     });
@@ -522,7 +522,6 @@
         const json = localStorage.getItem('archiveJson');
         if(ver===ARCHIVE_VERSION && json){
           const rows = JSON.parse(json);
-          state.archiveRaw = rows;
           buildArchiveIndex(rows);
           return true;
         }
@@ -568,7 +567,6 @@
             dText : r.dText  ?? r.dtext  ?? r.DTEXT      ?? r.text ?? '',
             dUrl  : r.dUrl   ?? r.durl   ?? r.DURL       ?? r.url  ?? ''
           }));
-          state.archiveRaw = rows;
           buildArchiveIndex(rows);
           saveArchiveToCache(rows);
           if (state.histKey) renderHistory(state.histKey.artist, state.histKey.title);
@@ -589,11 +587,11 @@
               return { artist, title, kind, dText, dUrl, _na, _nt, _date };
             })
             .filter(r => ((r.artist||'')+(r.title||'')).trim()!=='');
+
           state.cache[tab] = rows;
 
           if (state.cache[state.current]) {
-            state.rows = state.cache[state.current] || [];
-            $('status').textContent = `読み込み完了：${state.rows.length}件`;
+            $('status').textContent = `読み込み完了：${state.cache[state.current].length}件`;
             render();
           } else {
             $('status').textContent = '読み込み中…';
@@ -609,7 +607,6 @@
             dText : r.dText  ?? r.text  ?? '',
             dUrl  : r.dUrl   ?? r.url   ?? ''
           }));
-          state.archiveRaw = rows;
           buildArchiveIndex(rows);
           saveArchiveToCache(rows);
           renderHistory(state.histKey.artist, state.histKey.title);
@@ -667,8 +664,7 @@
       $('status').textContent='読み込み中…';
       requestCurrent(tab);
       if (state.cache[tab]) {
-        state.rows = state.cache[tab];
-        $('status').textContent = `表示中：${state.rows.length}件`;
+        $('status').textContent = `表示中：${state.cache[tab].length}件`;
         render();
       }
       updateSortUI();
@@ -723,21 +719,17 @@
           dt.textContent = dateLabel;
           left.appendChild(dt);
           if ((kind || '').trim() !== '') {
-            const k = document.createElement('span');
-            k.className = 'kind-chip';
-            k.textContent = kind;
+            const k=document.createElement('span');
+            k.className='kind-chip';
+            k.textContent=kind;
             left.appendChild(k);
           }
 
           const right = document.createElement('div');
           if (url) {
-            const a=document.createElement('a');
-            a.href=url; a.target='_blank'; a.rel='noopener'; a.textContent='▶ 開く';
-            right.appendChild(a);
+            const a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; a.textContent='▶ 開く'; right.appendChild(a);
           } else {
-            const span=document.createElement('span');
-            span.className='muted'; span.textContent='リンクなし';
-            right.appendChild(span);
+            const span=document.createElement('span'); span.className='muted'; span.textContent='リンクなし'; right.appendChild(span);
           }
 
           row.appendChild(left); row.appendChild(right);
@@ -749,43 +741,51 @@
       requestAnimationFrame(drawChunk);
     }
 
+    /* 並べ替えの比較を1か所に */
+    function compareRows(a, b, sort){
+      if (!sort) return 0;
+      const { key, dir } = sort;
+      if (key === 'title') {
+        const res = a._nt.localeCompare(b._nt, 'ja');
+        return dir === 'asc' ? res : -res;
+      }
+      if (key === 'artist') {
+        const res = a._na.localeCompare(b._na, 'ja');
+        return dir === 'asc' ? res : -res;
+      }
+      if (key === 'date') {
+        const ad = a._date || 0;
+        const bd = b._date || 0;
+        const res = ad - bd;
+        return dir === 'asc' ? res : -res;
+      }
+      return 0;
+    }
+
     function updateSortUI(){
       const titleBtn = $('sort-title');
       const artistBtn = $('sort-artist');
       const dateBtn   = $('sort-date');
 
-      if (!state.sortEnabled) {
+      if (!state.sortEnabled || !state.sort) {
         titleBtn.classList.remove('active');
         artistBtn.classList.remove('active');
         dateBtn.classList.remove('active');
-        titleBtn.textContent  = '楽曲名順↑';
-        artistBtn.textContent = '歌手名順↑';
-        dateBtn.textContent   = '投稿日順↓';
+        titleBtn.textContent  = LABELS.title.asc;
+        artistBtn.textContent = LABELS.artist.asc;
+        dateBtn.textContent   = LABELS.date.desc; // 初期だけ↓
         return;
       }
 
       const { key, dir } = state.sort;
 
-      titleBtn.classList.remove('active');
-      artistBtn.classList.remove('active');
-      dateBtn.classList.remove('active');
+      titleBtn.classList.toggle('active', key === 'title');
+      artistBtn.classList.toggle('active', key === 'artist');
+      dateBtn.classList.toggle('active', key === 'date');
 
-      if (key === 'title') {
-        titleBtn.classList.add('active');
-        titleBtn.textContent = dir === 'asc' ? '楽曲名順↑' : '楽曲名順↓';
-        artistBtn.textContent = '歌手名順↑';
-        dateBtn.textContent   = '投稿日順↓';
-      } else if (key === 'artist') {
-        artistBtn.classList.add('active');
-        artistBtn.textContent = dir === 'asc' ? '歌手名順↑' : '歌手名順↓';
-        titleBtn.textContent  = '楽曲名順↑';
-        dateBtn.textContent   = '投稿日順↓';
-      } else if (key === 'date') {
-        dateBtn.classList.add('active');
-        dateBtn.textContent   = dir === 'desc' ? '投稿日順↓' : '投稿日順↑';
-        titleBtn.textContent  = '楽曲名順↑';
-        artistBtn.textContent = '歌手名順↑';
-      }
+      titleBtn.textContent  = key === 'title'  ? LABELS.title[dir]  : LABELS.title.asc;
+      artistBtn.textContent = key === 'artist' ? LABELS.artist[dir] : LABELS.artist.asc;
+      dateBtn.textContent   = key === 'date'   ? LABELS.date[dir]   : LABELS.date.desc;
     }
 
     function render(){
@@ -810,23 +810,8 @@
         filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q));
       }
 
-      if (state.sortEnabled) {
-        const { key, dir } = state.sort;
-        filtered = filtered.slice().sort((a,b)=>{
-          if (key === 'title') {
-            const res = a._nt.localeCompare(b._nt, 'ja');
-            return dir === 'asc' ? res : -res;
-          } else if (key === 'artist') {
-            const res = a._na.localeCompare(b._na, 'ja');
-            return dir === 'asc' ? res : -res;
-          } else if (key === 'date') {
-            const ad = a._date || 0;
-            const bd = b._date || 0;
-            const res = ad - bd;
-            return dir === 'asc' ? res : -res;
-          }
-          return 0;
-        });
+      if (state.sortEnabled && state.sort) {
+        filtered = filtered.slice().sort((a,b)=>compareRows(a,b,state.sort));
       }
 
       const rows = filtered.slice(0, effectiveLimit);
@@ -940,12 +925,14 @@
     function handleSortClick(key){
       if (!state.sortEnabled) {
         state.sortEnabled = true;
-      }
-      if (state.sort.key === key) {
-        state.sort.dir = (state.sort.dir === 'asc') ? 'desc' : 'asc';
+        state.sort = { key, dir: key === 'date' ? 'desc' : 'asc' };
       } else {
-        state.sort.key = key;
-        state.sort.dir = (key === 'date') ? 'desc' : 'asc';
+        if (state.sort.key === key) {
+          state.sort.dir = (state.sort.dir === 'asc') ? 'desc' : 'asc';
+        } else {
+          state.sort.key = key;
+          state.sort.dir = (key === 'date') ? 'desc' : 'asc';
+        }
       }
       render();
     }
@@ -967,8 +954,8 @@
     });
 
     (function init(){
-      document.getElementById('tab-songs').addEventListener('click', ()=> setActiveTab('songs'));
-      document.getElementById('tab-gags').addEventListener('click',  ()=> setActiveTab('gags'));
+      $('tab-songs').addEventListener('click', ()=> setActiveTab('songs'));
+      $('tab-gags').addEventListener('click',  ()=> setActiveTab('gags'));
       $('q').addEventListener('input', ()=>{
         clearTimeout(state.debounce);
         state.debounce=setTimeout(render,200);
