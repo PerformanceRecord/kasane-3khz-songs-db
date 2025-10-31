@@ -6,24 +6,22 @@
   <meta name="theme-color" content="#e6f6ff">
   <title>花彩音3kHz歌唱曲DB</title>
 
-
   <!-- 汎用ICO（最優先の後方互換） -->
-<link rel="icon" href="/kasane-3khz-songs-db/favicon.ico" sizes="any">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon.ico" sizes="any">
 
-<!-- PNG各サイズ（ブラウザの最適サイズ選択用） -->
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-16.png"  sizes="16x16"   type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-32.png"  sizes="32x32"   type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-48.png"  sizes="48x48"   type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-64.png"  sizes="64x64"   type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-128.png" sizes="128x128" type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-192.png" sizes="192x192" type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-256.png" sizes="256x256" type="image/png">
-<link rel="icon" href="/kasane-3khz-songs-db/favicon-512.png" sizes="512x512" type="image/png">
+  <!-- PNG各サイズ（ブラウザの最適サイズ選択用） -->
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-16.png"  sizes="16x16"   type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-32.png"  sizes="32x32"   type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-48.png"  sizes="48x48"   type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-64.png"  sizes="64x64"   type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-128.png" sizes="128x128" type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-192.png" sizes="192x192" type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-256.png" sizes="256x256" type="image/png">
+  <link rel="icon" href="/kasane-3khz-songs-db/favicon-512.png" sizes="512x512" type="image/png">
 
-<!-- iPhone ホーム追加用 -->
-<link rel="apple-touch-icon" href="/kasane-3khz-songs-db/apple-touch-icon-180.png" sizes="180x180">
+  <!-- iPhone ホーム追加用 -->
+  <link rel="apple-touch-icon" href="/kasane-3khz-songs-db/apple-touch-icon-180.png" sizes="180x180">
 
-  
   <style>
     :root{
       --bg:#e6f6ff; --card:#ffffff; --text:#1a1a1a; --muted:#6b7280; --line:#e5e7eb;
@@ -46,6 +44,25 @@
     .row>*{flex:1}
     input[type="search"],select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff;color:var(--text);outline:none}
     input[type="search"]:focus,select:focus,.btn:focus,.link-icon:focus,.link-btn:focus{outline:3px solid var(--focus);outline-offset:2px}
+
+    /* 並べ替えバー */
+    .sortbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .sort-btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius:999px;
+      padding:4px 12px;
+      font-size:13px;
+      cursor:pointer;
+      line-height:1.4;
+    }
+    .sort-btn.active{
+      background:#e0f2ff;
+      border-color:#93c5fd;
+      font-weight:600;
+    }
 
     .dm-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
     .dm-select-wrap{flex:7 1 0}
@@ -92,6 +109,7 @@
       .l2{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap}
       .dm-select-wrap{flex:7 1 0}
       .dm-btn-wrap{flex:3 1 0}
+      .sortbar{flex-direction:row}
     }
 
     .page{display:none}.page.active{display:block}
@@ -129,6 +147,13 @@
 
       <div class="row">
         <input id="q" type="search" placeholder="曲名／アーティスト名で検索" autocomplete="off">
+      </div>
+
+      <!-- 並べ替えボタン群 -->
+      <div class="sortbar" aria-label="並べ替え">
+        <button type="button" class="sort-btn" data-sort="title" id="sort-title">楽曲名順↑</button>
+        <button type="button" class="sort-btn" data-sort="artist" id="sort-artist">歌手名順↑</button>
+        <button type="button" class="sort-btn" data-sort="date" id="sort-date">投稿日順↓</button>
       </div>
 
       <div class="dm-wrap" aria-label="弾幕コピー">
@@ -185,7 +210,12 @@
       archiveByKey: null,
       archiveByTitle: null,
       lastScroll: 0,
-      histKey: null
+      histKey: null,
+      // 並べ替えの状態
+      sort: {
+        key: 'title',   // 'title' | 'artist' | 'date'
+        dir: 'asc'      // 'asc' | 'desc'
+      }
     };
 
     const $ = id => document.getElementById(id);
@@ -296,15 +326,21 @@
 
         if (tab === 'songs' || tab === 'gags') {
           const rows = (payload.rows||[])
-            .map(r => ({
-              artist: r.artist ?? r.Artist ?? r.アーティスト ?? '',
-              title : r.title  ?? r.Title  ?? r.曲名       ?? '',
-              kind  : r.kind   ?? r.Kind   ?? r.区分       ?? '',
-              dText : r.dText  ?? r.dtext  ?? r.DTEXT      ?? r.text ?? '',
-              dUrl  : r.dUrl   ?? r.durl   ?? r.DURL       ?? r.url  ?? '',
-              _na   : normalize(r.artist ?? r.Artist ?? r.アーティスト ?? ''),
-              _nt   : normalize(r.title  ?? r.Title  ?? r.曲名       ?? '')
-            }))
+            .map(r => {
+              const artist = r.artist ?? r.Artist ?? r.アーティスト ?? '';
+              const title  = r.title  ?? r.Title  ?? r.曲名       ?? '';
+              const dText  = r.dText  ?? r.dtext  ?? r.DTEXT      ?? r.text ?? '';
+              const dUrl   = r.dUrl   ?? r.durl   ?? r.DURL       ?? r.url  ?? '';
+              const kind   = r.kind   ?? r.Kind   ?? r.区分       ?? '';
+              // 並べ替え用に事前計算しておく
+              const _na = normalize(artist);
+              const _nt = normalize(title);
+              const _date = extractDate8(dText); // D列想定（なければ0）
+              return {
+                artist, title, kind, dText, dUrl,
+                _na, _nt, _date
+              };
+            })
             .filter(r => ((r.artist||'')+(r.title||'')).trim()!=='');
           state.cache[tab] = rows;
 
@@ -388,6 +424,8 @@
         $('status').textContent = `表示中：${state.rows.length}件`;
         render();
       }
+      // タブ切り替え時も並べ替えUIを合わせる
+      updateSortUI();
     }
 
     function renderHistory(artist, title){
@@ -430,12 +468,10 @@
           const row = document.createElement('div'); row.className='history-item';
 
           const left = document.createElement('div'); left.className='history-left';
-          // 先に日付
           const dt = document.createElement('span');
           dt.className = 'history-date';
           dt.textContent = dateLabel;
           left.appendChild(dt);
-          // 次に C列（区分）※空なら出さない
           if ((kind || '').trim() !== '') {
             const k = document.createElement('span');
             k.className = 'kind-chip';
@@ -454,6 +490,39 @@
         if (i < list.length) requestAnimationFrame(drawChunk);
       }
       requestAnimationFrame(drawChunk);
+    }
+
+    // 並べ替えUIのラベルを現在のstateに合わせて書き換える
+    function updateSortUI(){
+      const { key, dir } = state.sort;
+      const titleBtn = $('sort-title');
+      const artistBtn = $('sort-artist');
+      const dateBtn = $('sort-date');
+
+      // 一旦全部デフォルト
+      titleBtn.classList.remove('active');
+      artistBtn.classList.remove('active');
+      dateBtn.classList.remove('active');
+
+      // 現在の並べ替えを表示
+      if (key === 'title') {
+        titleBtn.classList.add('active');
+        titleBtn.textContent = dir === 'asc' ? '楽曲名順↑' : '楽曲名順↓';
+        // 他は初期表示に戻す
+        artistBtn.textContent = '歌手名順↑';
+        dateBtn.textContent   = '投稿日順↓';
+      } else if (key === 'artist') {
+        artistBtn.classList.add('active');
+        artistBtn.textContent = dir === 'asc' ? '歌手名順↑' : '歌手名順↓';
+        titleBtn.textContent  = '楽曲名順↑';
+        dateBtn.textContent   = '投稿日順↓';
+      } else if (key === 'date') {
+        dateBtn.classList.add('active');
+        // 日付は新しい順が普通なのでdir=descを↓で表現
+        dateBtn.textContent   = dir === 'desc' ? '投稿日順↓' : '投稿日順↑';
+        titleBtn.textContent  = '楽曲名順↑';
+        artistBtn.textContent = '歌手名順↑';
+      }
     }
 
     function render(){
@@ -475,6 +544,31 @@
 
       let filtered = state.cache[state.current] || [];
       if(q){ filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q)); }
+
+      // 並べ替えをここでかける
+      const { key, dir } = state.sort;
+      filtered = filtered.slice().sort((a,b)=>{
+        if (key === 'title') {
+          // 日本語もあるのでlocaleCompareで
+          const ac = a._nt;
+          const bc = b._nt;
+          const res = ac.localeCompare(bc, 'ja');
+          return dir === 'asc' ? res : -res;
+        } else if (key === 'artist') {
+          const ac = a._na;
+          const bc = b._na;
+          const res = ac.localeCompare(bc, 'ja');
+          return dir === 'asc' ? res : -res;
+        } else if (key === 'date') {
+          // 数値が大きいほど新しい
+          const ad = a._date || 0;
+          const bd = b._date || 0;
+          const res = ad - bd;
+          return dir === 'asc' ? res : -res;
+        }
+        return 0;
+      });
+
       const rows = filtered.slice(0, effectiveLimit);
 
       const limitLabel = (rawLimit === 'all') ? '全て' : `${effectiveLimit}件`;
@@ -577,6 +671,22 @@
         });
         $('mblist').style.display = 'block'; $('table').style.display = 'none';
       }
+
+      // レンダリング時にもUIを整合
+      updateSortUI();
+    }
+
+    // 並べ替えボタンのハンドラ
+    function handleSortClick(key){
+      if (state.sort.key === key) {
+        // 同じキーなら昇降反転
+        state.sort.dir = (state.sort.dir === 'asc') ? 'desc' : 'asc';
+      } else {
+        // 切り替えるときの日付だけはデフォルトを新しい順(desc)にする
+        state.sort.key = key;
+        state.sort.dir = (key === 'date') ? 'desc' : 'asc';
+      }
+      render();
     }
 
     $('btn-back').addEventListener('click', ()=>{
@@ -591,12 +701,20 @@
       $('q').addEventListener('input', ()=>{ clearTimeout(state.debounce); state.debounce=setTimeout(render,200); });
       $('limit').addEventListener('change', render);
 
+      // 並べ替えボタン
+      $('sort-title').addEventListener('click', ()=>handleSortClick('title'));
+      $('sort-artist').addEventListener('click', ()=>handleSortClick('artist'));
+      $('sort-date').addEventListener('click', ()=>handleSortClick('date'));
+
       showPage('page-list');
       setActiveTab('songs');
       if (!state.cache['songs']) requestData('songs');
       if (!state.cache['gags'])  requestData('gags');
 
       ensureArchiveFast();
+
+      // 初期表示でUIを揃える
+      updateSortUI();
     })();
   </script>
 </body>
