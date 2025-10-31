@@ -13,7 +13,7 @@
   <!-- Androidや一部ブラウザでのアプリ名 -->
   <meta name="application-name" content="彩興DB">
 
-  <!-- PWA用マニフェスト（※実ファイルを配置してください） -->
+  <!-- PWA用マニフェスト（GASで返す場合はここをGASのexec?manifest=1にしてください） -->
   <link rel="manifest" href="/kasane-3khz-songs-db/manifest.webmanifest">
 
   <!-- 汎用ICO（最優先の後方互換） -->
@@ -34,29 +34,117 @@
 
   <style>
     :root{
-      --bg:#e6f6ff; --card:#ffffff; --text:#1a1a1a; --muted:#6b7280; --line:#e5e7eb;
-      --thead:#dff1ff; --focus:#97f0b6; --tab-bg:#ffffff; --tab-active:#c8e7ff; --tab-border:#cbd5e1; --link:#2563eb;
-      --chip-bg:#f3f4f6; --chip-text:#111827;
+      --bg:#e6f6ff;
+      --card:#ffffff;
+      --text:#1a1a1a;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --thead:#dff1ff;
+      --focus:#97f0b6;
+      --tab-bg:#ffffff;
+      --tab-active:#c8e7ff;
+      --tab-border:#cbd5e1;
+      --link:#2563eb;
+      --chip-bg:#f3f4f6;
+      --chip-text:#111827;
     }
     *{box-sizing:border-box}
-    body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;line-height:1.7;margin:12px}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
+      line-height:1.7;
+      margin:12px
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:0 2px 10px rgba(0,0,0,.06)
+    }
 
-    .topbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;margin-bottom:8px}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{appearance:none;border:1px solid var(--tab-border);background:var(--tab-bg);color:var(--text);border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer}
-    .tab[aria-selected="true"]{background:var(--tab-active);font-weight:700}
-    .tab:focus{outline:3px solid var(--focus);outline-offset:2px}
-    .limit-wrap{display:flex;align-items:center;gap:8px}
-    #limit{padding:6px 10px;font-size:14px;line-height:1.2;width:auto;min-width:120px}
+    .topbar{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      margin-bottom:8px
+    }
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap
+    }
+    .tab{
+      appearance:none;
+      border:1px solid var(--tab-border);
+      background:var(--tab-bg);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 14px;
+      font-size:14px;
+      cursor:pointer
+    }
+    .tab[aria-selected="true"]{
+      background:var(--tab-active);
+      font-weight:700
+    }
+    /* ←ここでタブだけフォーカスリングを抑制し、キーボード操作時だけ出す */
+    .tab:focus{
+      outline:none;
+    }
+    .tab:focus-visible{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
+
+    .limit-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px
+    }
+    #limit{
+      padding:6px 10px;
+      font-size:14px;
+      line-height:1.2;
+      width:auto;
+      min-width:120px
+    }
 
     /* 検索＋トグル */
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
-    .search-wrap{flex:1 1 auto;min-width:180px}
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      margin-bottom:4px
+    }
+    .search-wrap{
+      flex:1 1 auto;
+      min-width:180px
+    }
     .search-wrap input[type="search"]{width:100%}
 
-    input[type="search"],select{padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff;color:var(--text);outline:none}
-    input[type="search"]:focus,select:focus,.btn:focus,.link-icon:focus,.link-btn:focus{outline:3px solid var(--focus);outline-offset:2px}
+    input[type="search"],select{
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      font-size:16px;
+      background:#fff;
+      color:var(--text);
+      outline:none
+    }
+    /* こっちは今までどおりミントで出す */
+    input[type="search"]:focus,
+    select:focus,
+    .btn:focus,
+    .link-icon:focus,
+    .link-btn:focus{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
 
     .sort-toggle{
       appearance:none;
@@ -69,7 +157,10 @@
       cursor:pointer;
       white-space:nowrap;
     }
-    .sort-toggle:focus{outline:3px solid var(--focus);outline-offset:2px}
+    .sort-toggle:focus{
+      outline:3px solid var(--focus);
+      outline-offset:2px;
+    }
 
     /* 折りたたみ並べ替えバー（初回非表示） */
     .sortbar{
@@ -88,7 +179,7 @@
       appearance:none;
       border:1px solid var(--line);
       background:#fff;
-      color:var(--text); /* ←黒で統一 */
+      color:var(--text); /* 黒で統一 */
       border-radius:999px;
       padding:4px 12px;
       font-size:13px;
@@ -102,39 +193,105 @@
       color:var(--text);
     }
 
-    .dm-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
+    .dm-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:8px
+    }
     .dm-select-wrap{flex:7 1 0}
     .dm-btn-wrap{flex:3 1 0;display:flex}
-    #dm-select{width:100%;padding:6px 10px;font-size:14px;line-height:1.2}
-    .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--text);border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+    #dm-select{
+      width:100%;
+      padding:6px 10px;
+      font-size:14px;
+      line-height:1.2
+    }
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--text);
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:14px;
+      cursor:pointer
+    }
     .btn:hover{background:#f9fafb}
     .btn:active{transform:translateY(1px)}
     .btn-full{width:100%}
 
     .muted{color:var(--muted);font-size:13px}
-    .toast{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:rgba(17,24,39,.92);color:#fff;padding:10px 14px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s}
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:16px;
+      transform:translateX(-50%);
+      background:rgba(17,24,39,.92);
+      color:#fff;
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:14px;
+      opacity:0;
+      transition:opacity .2s
+    }
     .toast.show{opacity:1}
 
-    table{width:100%;border-collapse:collapse;margin-top:10px;table-layout:fixed}
-    th,td{border-bottom:1px solid var(--line);padding:10px 8px;font-size:15px;vertical-align:top}
-    th{position:sticky;top:0;background:var(--thead);z-index:1;font-weight:700}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+      table-layout:fixed
+    }
+    th,td{
+      border-bottom:1px solid var(--line);
+      padding:10px 8px;
+      font-size:15px;
+      vertical-align:top
+    }
+    th{
+      position:sticky;
+      top:0;
+      background:var(--thead);
+      z-index:1;
+      font-weight:700
+    }
     th:nth-child(1),td:nth-child(1){width:28%}
     th:nth-child(2),td:nth-child(2){width:40%}
     th:nth-child(3),td:nth-child(3){width:32%}
-    .ops{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
-    .link-icon{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;line-height:1;text-decoration:none;font-size:18px;border-radius:8px}
+    .ops{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:8px;
+      flex-wrap:wrap
+    }
+    .link-icon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:36px;
+      height:36px;
+      line-height:1;
+      text-decoration:none;
+      font-size:18px;
+      border-radius:8px
+    }
     .link-icon:hover{background:#f3f4f6}
     .link-icon:active{transform:translateY(1px)}
 
     .kind-chip{
-      display:inline-flex;align-items:center;
+      display:inline-flex;
+      align-items:center;
       max-width:100%;
       padding:4px 8px;
       border-radius:999px;
       font-size:13px;
       background:var(--chip-bg);
       color:var(--chip-text);
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
       border:1px solid var(--line);
     }
 
@@ -144,24 +301,73 @@
       .sort-toggle{flex:0 0 auto}
       table{display:none}
       .mobile-list{display:block;margin-top:10px}
-      .item{border-bottom:1px solid var(--line);padding:12px 2px;display:flex;flex-direction:column;gap:6px}
-      .l1{font-size:16px;line-height:1.6;font-weight:700;display:flex;gap:6px;flex-wrap:wrap}
+      .item{
+        border-bottom:1px solid var(--line);
+        padding:12px 2px;
+        display:flex;
+        flex-direction:column;
+        gap:6px
+      }
+      .l1{
+        font-size:16px;
+        line-height:1.6;
+        font-weight:700;
+        display:flex;
+        gap:6px;
+        flex-wrap:wrap
+      }
       .l1 .sep{opacity:.6}
-      .l2{display:flex;align-items:center;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+      .l2{
+        display:flex;
+        align-items:center;
+        gap:8px;
+        justify-content:flex-end;
+        flex-wrap:wrap
+      }
     }
 
     .page{display:none}.page.active{display:block}
-    .history-header{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-    .back{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-size:14px;cursor:pointer}
+    .history-header{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:8px
+    }
+    .back{
+      appearance:none;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:8px 12px;
+      font-size:14px;
+      cursor:pointer
+    }
     .back:hover{background:#f9fafb}
     .title{font-weight:700}
     .history-list{margin-top:8px}
-    .history-item{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:10px 4px;gap:8px}
-    .history-left{display:flex;align-items:center;gap:8px;min-width:0}
+    .history-item{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid var(--line);
+      padding:10px 4px;
+      gap:8px
+    }
+    .history-left{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0
+    }
     .history-date{white-space:nowrap;color:#374151}
     .history-item a{color:var(--link);text-decoration:none}
     .history-item a:hover{text-decoration:underline}
-    .skeleton{height:16px;background:#eef6ff;border-radius:6px;margin:6px 0}
+    .skeleton{
+      height:16px;
+      background:#eef6ff;
+      border-radius:6px;
+      margin:6px 0
+    }
   </style>
 </head>
 <body>
@@ -253,7 +459,6 @@
       archiveByTitle: null,
       lastScroll: 0,
       histKey: null,
-      // 並べ替え条件は持つが、初回は使わない
       sort: { key: 'date', dir: 'desc' },
       sortEnabled: false
     };
@@ -264,9 +469,15 @@
     async function copyText(text){
       try{
         if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(text);
-        else{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+        else{
+          const ta=document.createElement('textarea');
+          ta.value=text; document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); ta.remove();
+        }
         showToast('コピーしました');
-      }catch{ showToast('コピーに失敗しました'); }
+      }catch{
+        showToast('コピーに失敗しました');
+      }
     }
     async function copyPair(title, artist){
       const text = `${(title||'').trim()} / ${(artist||'').trim()}`.trim();
@@ -474,7 +685,11 @@
 
       if (!state.archiveByKey || !state.archiveByTitle) {
         ensureArchiveFast();
-        for(let i=0;i<6;i++){ const sk=document.createElement('div'); sk.className='skeleton'; wrap.appendChild(sk); }
+        for(let i=0;i<6;i++){
+          const sk=document.createElement('div');
+          sk.className='skeleton';
+          wrap.appendChild(sk);
+        }
         $('hist-sub').textContent = '履歴を読み込み中…';
         return;
       }
@@ -515,8 +730,15 @@
           }
 
           const right = document.createElement('div');
-          if (url) { const a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; a.textContent='▶ 開く'; right.appendChild(a); }
-          else { const span=document.createElement('span'); span.className='muted'; span.textContent='リンクなし'; right.appendChild(span); }
+          if (url) {
+            const a=document.createElement('a');
+            a.href=url; a.target='_blank'; a.rel='noopener'; a.textContent='▶ 開く';
+            right.appendChild(a);
+          } else {
+            const span=document.createElement('span');
+            span.className='muted'; span.textContent='リンクなし';
+            right.appendChild(span);
+          }
 
           row.appendChild(left); row.appendChild(right);
           frag.appendChild(row);
@@ -527,13 +749,11 @@
       requestAnimationFrame(drawChunk);
     }
 
-    // 並べ替えボタンの見た目をstateに合わせて変える
     function updateSortUI(){
       const titleBtn = $('sort-title');
       const artistBtn = $('sort-artist');
       const dateBtn   = $('sort-date');
 
-      // まだソートしていないときは全部初期表示
       if (!state.sortEnabled) {
         titleBtn.classList.remove('active');
         artistBtn.classList.remove('active');
@@ -590,7 +810,6 @@
         filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q));
       }
 
-      // 並べ替えが有効なときだけソート
       if (state.sortEnabled) {
         const { key, dir } = state.sort;
         filtered = filtered.slice().sort((a,b)=>{
@@ -632,7 +851,9 @@
         const table=document.createElement('table');
         const thead=document.createElement('thead');
         const trh=document.createElement('tr');
-        ['アーティスト名','曲名','操作'].forEach(h=>{ const th=document.createElement('th'); th.textContent=h; trh.appendChild(th); });
+        ['アーティスト名','曲名','操作'].forEach(h=>{
+          const th=document.createElement('th'); th.textContent=h; trh.appendChild(th);
+        });
         thead.appendChild(trh); table.appendChild(thead);
 
         const tbody=document.createElement('tbody');
@@ -716,7 +937,6 @@
       updateSortUI();
     }
 
-    // 並べ替えボタンを押したとき
     function handleSortClick(key){
       if (!state.sortEnabled) {
         state.sortEnabled = true;
@@ -734,7 +954,6 @@
       showPage('page-list'); window.scrollTo({ top: state.lastScroll || 0 });
     });
 
-    // 折りたたみトグル
     $('sort-toggle').addEventListener('click', ()=>{
       const bar = $('sortbar');
       const btn = $('sort-toggle');
@@ -742,12 +961,18 @@
       btn.setAttribute('aria-expanded', String(isOpen));
     });
 
-    window.addEventListener('resize', ()=>{ clearTimeout(state.debounce); state.debounce=setTimeout(render,150); });
+    window.addEventListener('resize', ()=>{
+      clearTimeout(state.debounce);
+      state.debounce=setTimeout(render,150);
+    });
 
     (function init(){
       document.getElementById('tab-songs').addEventListener('click', ()=> setActiveTab('songs'));
       document.getElementById('tab-gags').addEventListener('click',  ()=> setActiveTab('gags'));
-      $('q').addEventListener('input', ()=>{ clearTimeout(state.debounce); state.debounce=setTimeout(render,200); });
+      $('q').addEventListener('input', ()=>{
+        clearTimeout(state.debounce);
+        state.debounce=setTimeout(render,200);
+      });
       $('limit').addEventListener('change', render);
 
       $('sort-title').addEventListener('click', ()=>handleSortClick('title'));
