@@ -1,0 +1,12 @@
+{
+  "name": "花彩音3kHz歌唱曲DB",
+  "short_name": "彩興DB",
+  "start_url": "/kasane-3khz-songs-db/",
+  "display": "standalone",
+  "background_color": "#e6f6ff",
+  "theme_color": "#e6f6ff",
+  "icons": [
+    { "src": "/kasane-3khz-songs-db/favicon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/kasane-3khz-songs-db/favicon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
