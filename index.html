@@ -4,10 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <meta name="theme-color" content="#e6f6ff">
-  <title>花彩音3kHz歌唱曲DB</title>
+  <title>彩興DB</title>
 
-  <!-- icon類は省略せずそのまま -->
+  <!-- 汎用ICO（最優先の後方互換） -->
   <link rel="icon" href="/kasane-3khz-songs-db/favicon.ico" sizes="any">
+
+  <!-- PNG各サイズ（ブラウザの最適サイズ選択用） -->
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-16.png"  sizes="16x16"   type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-32.png"  sizes="32x32"   type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-48.png"  sizes="48x48"   type="image/png">
@@ -16,6 +18,8 @@
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-192.png" sizes="192x192" type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-256.png" sizes="256x256" type="image/png">
   <link rel="icon" href="/kasane-3khz-songs-db/favicon-512.png" sizes="512x512" type="image/png">
+
+  <!-- iPhone ホーム追加用 -->
   <link rel="apple-touch-icon" href="/kasane-3khz-songs-db/apple-touch-icon-180.png" sizes="180x180">
 
   <style>
@@ -36,14 +40,19 @@
     .limit-wrap{display:flex;align-items:center;gap:8px}
     #limit{padding:6px 10px;font-size:14px;line-height:1.2;width:auto;min-width:120px}
 
-    /* 検索行＋トグルボタン */
+    /* 検索＋トグル */
     .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
     .search-wrap{flex:1 1 auto;min-width:180px}
     .search-wrap input[type="search"]{width:100%}
+
+    input[type="search"],select{padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff;color:var(--text);outline:none}
+    input[type="search"]:focus,select:focus,.btn:focus,.link-icon:focus,.link-btn:focus{outline:3px solid var(--focus);outline-offset:2px}
+
     .sort-toggle{
       appearance:none;
       border:1px solid var(--line);
       background:#fff;
+      color:var(--text);
       border-radius:10px;
       padding:6px 10px;
       font-size:13px;
@@ -52,10 +61,7 @@
     }
     .sort-toggle:focus{outline:3px solid var(--focus);outline-offset:2px}
 
-    input[type="search"],select{padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:16px;background:#fff;color:var(--text);outline:none}
-    input[type="search"]:focus,select:focus,.btn:focus,.link-icon:focus,.link-btn:focus{outline:3px solid var(--focus);outline-offset:2px}
-
-    /* 折りたたみされた並べ替えバー（初期は閉） */
+    /* 折りたたみ並べ替えバー（初回非表示） */
     .sortbar{
       display:flex;
       gap:8px;
@@ -66,13 +72,13 @@
       transition:max-height .2s ease;
     }
     .sortbar.open{
-      max-height:80px; /* ボタン3つならこれで足ります */
+      max-height:80px;
     }
     .sort-btn{
       appearance:none;
       border:1px solid var(--line);
       background:#fff;
-      color:var(--text);
+      color:var(--text); /* ←黒で統一 */
       border-radius:999px;
       padding:4px 12px;
       font-size:13px;
@@ -83,6 +89,7 @@
       background:#e0f2ff;
       border-color:#93c5fd;
       font-weight:600;
+      color:var(--text); /* アクティブでも黒のまま */
     }
 
     .dm-wrap{display:flex;align-items:center;gap:8px;margin-top:8px}
@@ -204,7 +211,7 @@
     </div>
   </div>
 
-  <!-- 履歴ページ（省略なしでそのまま） -->
+  <!-- 履歴ページ -->
   <div id="page-history" class="page">
     <div class="card">
       <div class="history-header">
@@ -236,7 +243,9 @@
       archiveByTitle: null,
       lastScroll: 0,
       histKey: null,
-      sort: { key: 'title', dir: 'asc' } // 初期状態は楽曲名昇順
+      // 並べ替え条件自体は持っておくが、初回は使わない
+      sort: { key: 'date', dir: 'desc' },
+      sortEnabled: false   // ←初回はソートしない（シート順で表示）
     };
 
     const $ = id => document.getElementById(id);
@@ -508,11 +517,24 @@
       requestAnimationFrame(drawChunk);
     }
 
+    // 並べ替えボタンの見た目をstateに合わせて変える
     function updateSortUI(){
-      const { key, dir } = state.sort;
       const titleBtn = $('sort-title');
       const artistBtn = $('sort-artist');
-      const dateBtn = $('sort-date');
+      const dateBtn   = $('sort-date');
+
+      // まだソートしていないときは全部初期表示
+      if (!state.sortEnabled) {
+        titleBtn.classList.remove('active');
+        artistBtn.classList.remove('active');
+        dateBtn.classList.remove('active');
+        titleBtn.textContent  = '楽曲名順↑';
+        artistBtn.textContent = '歌手名順↑';
+        dateBtn.textContent   = '投稿日順↓';
+        return;
+      }
+
+      const { key, dir } = state.sort;
 
       titleBtn.classList.remove('active');
       artistBtn.classList.remove('active');
@@ -554,24 +576,29 @@
       const effectiveLimit = Math.min(limitParsed, HARD_LIMIT);
 
       let filtered = state.cache[state.current] || [];
-      if(q){ filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q)); }
+      if(q){
+        filtered = filtered.filter(r => r._na.includes(q) || r._nt.includes(q));
+      }
 
-      const { key, dir } = state.sort;
-      filtered = filtered.slice().sort((a,b)=>{
-        if (key === 'title') {
-          const res = a._nt.localeCompare(b._nt, 'ja');
-          return dir === 'asc' ? res : -res;
-        } else if (key === 'artist') {
-          const res = a._na.localeCompare(b._na, 'ja');
-          return dir === 'asc' ? res : -res;
-        } else if (key === 'date') {
-          const ad = a._date || 0;
-          const bd = b._date || 0;
-          const res = ad - bd;
-          return dir === 'asc' ? res : -res;
-        }
-        return 0;
-      });
+      // ←ここが今回のキモ。sortEnabledのときだけ並べ替える
+      if (state.sortEnabled) {
+        const { key, dir } = state.sort;
+        filtered = filtered.slice().sort((a,b)=>{
+          if (key === 'title') {
+            const res = a._nt.localeCompare(b._nt, 'ja');
+            return dir === 'asc' ? res : -res;
+          } else if (key === 'artist') {
+            const res = a._na.localeCompare(b._na, 'ja');
+            return dir === 'asc' ? res : -res;
+          } else if (key === 'date') {
+            const ad = a._date || 0;
+            const bd = b._date || 0;
+            const res = ad - bd;
+            return dir === 'asc' ? res : -res;
+          }
+          return 0;
+        });
+      }
 
       const rows = filtered.slice(0, effectiveLimit);
 
@@ -679,7 +706,12 @@
       updateSortUI();
     }
 
+    // 並べ替えボタンを押したとき
     function handleSortClick(key){
+      // 初めて押されたらソートを有効化
+      if (!state.sortEnabled) {
+        state.sortEnabled = true;
+      }
       if (state.sort.key === key) {
         state.sort.dir = (state.sort.dir === 'asc') ? 'desc' : 'asc';
       } else {
@@ -719,7 +751,7 @@
       if (!state.cache['gags'])  requestData('gags');
 
       ensureArchiveFast();
-      updateSortUI(); // 初回にボタン表示状態だけ合わせる
+      updateSortUI(); // 初期：並べ替え無し表示
     })();
   </script>
 </body>
