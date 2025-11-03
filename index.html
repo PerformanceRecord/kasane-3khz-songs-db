@@ -458,12 +458,20 @@
       archiveByTitle: null,
       lastScroll: 0,
       histKey: null,
-      sort: null,           // ← 初期は並べ替えなし
+      sort: null,
       sortEnabled: false
     };
 
     const $ = id => document.getElementById(id);
-    const normalize = s => (s||'').toString().toLowerCase().replace(/\s+/g,' ').trim();
+    // GASと同じ正規化に寄せる
+    const normalize = s => (s || '')
+      .toString()
+      .replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0))
+      .replace(/\u3000/g, ' ')
+      .toLowerCase()
+      .replace(/\s+/g,' ')
+      .trim();
+
     const showToast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1400); };
 
     async function copyText(text){
@@ -671,6 +679,9 @@
     }
 
     function renderHistory(artist, title){
+      // ここで毎回最新を取りに行く
+      requestData('archive');
+
       state.histKey = { artist, title };
       $('hist-title').textContent = `${artist || ''} / ${title || ''}`;
 
@@ -680,6 +691,7 @@
       empty.style.display = 'none';
 
       if (!state.archiveByKey || !state.archiveByTitle) {
+        // キャッシュが無ければとりあえずローカルも試す
         ensureArchiveFast();
         for(let i=0;i<6;i++){
           const sk=document.createElement('div');
@@ -773,7 +785,7 @@
         dateBtn.classList.remove('active');
         titleBtn.textContent  = LABELS.title.asc;
         artistBtn.textContent = LABELS.artist.asc;
-        dateBtn.textContent   = LABELS.date.desc; // 初期だけ↓
+        dateBtn.textContent   = LABELS.date.desc;
         return;
       }
 
@@ -866,7 +878,6 @@
           hbtn.addEventListener('click', ()=>{
             state.lastScroll = window.scrollY || document.documentElement.scrollTop || 0;
             showPage('page-history');
-            if (!state.archiveByKey) ensureArchiveFast();
             renderHistory(artist, title);
           });
           ops.appendChild(hbtn);
@@ -905,7 +916,6 @@
           hbtn.addEventListener('click', ()=>{
             state.lastScroll = window.scrollY || document.documentElement.scrollTop || 0;
             showPage('page-history');
-            if (!state.archiveByKey) ensureArchiveFast();
             renderHistory(artist, title);
           });
           l2.appendChild(hbtn);
